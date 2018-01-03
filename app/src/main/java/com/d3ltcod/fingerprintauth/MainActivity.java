@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private KeyStore keyStore;
     private KeyGenerator keyGenerator;
     private Cipher cipher;
+    private FingerprintManager.CryptoObject cryptoObject;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +77,20 @@ public class MainActivity extends AppCompatActivity {
                 // If the user hasn’t secured their lockscreen with a PIN password or pattern, then display the following text.
                 textView.setText("Please enable lockscreen security in your device's Settings");
             } else {
-                //TODO
+                try {
+                    generateKey();
+                } catch (FingerprintException e) {
+                    e.printStackTrace();
+                }
+
+                if (generateCipher()) {
+                    //If the cipher is initialized successfully, then create a CryptoObject instance
+                    cryptoObject = new FingerprintManager.CryptoObject(cipher);
+
+                    // Starting the authentication process and processing the authentication process events.
+                    FingerprintHandler helper = new FingerprintHandler(this);
+                    helper.startFingerprintAuth(fingerprintManager, cryptoObject);
+                }
             }
         }
     }
